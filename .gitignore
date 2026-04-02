@@ -1,0 +1,39 @@
+# Build and virtual environments
+.venv/
+venv/
+ENV/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Local configuration and databases
+docintel.db
+docintel.db-journal
+uploads/*
+!uploads/.gitkeep
+
+# Sensitive or large test files
+test_results.txt
+test_output.txt
+test_api_results.json
+*.log
+
+# IDE and System files
+.idea/
+.vscode/
+.vscode-test/
+.DS_Store
+Thumbs.db
+
+# Tool-specific
+.gemini/
+scripts/
+brain/
+implementation_plan.md
+task.md
+walkthrough.md

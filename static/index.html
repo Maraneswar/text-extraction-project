@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DocIntel — Intelligent Document Processing</title>
+    <meta name="description" content="Extract, analyse, and summarize content from PDF, DOCX, and image files using AI-powered document processing.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+    <!-- subtle background -->
+    <div class="bg-orbs"></div>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+                        <rect x="4" y="2" width="18" height="24" rx="3" stroke="currentColor" stroke-width="2.5"/>
+                        <path d="M10 8h8M10 12h10M10 16h6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="22" cy="22" r="8" fill="var(--accent-blue)" opacity="0.9"/>
+                        <path d="M20 22l1.5 1.5L24 20" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </div>
+                <div>
+                    <h1>DocIntel</h1>
+                    <p class="logo-subtitle">Intelligent Document Processing</p>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Upload Section -->
+            <section class="upload-section" id="uploadSection">
+                <div class="upload-zone" id="dropZone">
+                    <div class="upload-icon">
+                        <svg width="64" height="64" viewBox="0 0 64 64" fill="none">
+                            <path d="M32 44V20M32 20L22 30M32 20L42 30" stroke="var(--accent-blue)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M12 40v6a6 6 0 006 6h28a6 6 0 006-6v-6" stroke="var(--accent-blue)" stroke-width="3" stroke-linecap="round"/>
+                        </svg>
+                    </div>
+                    <h2 class="upload-title">Drop your document here</h2>
+                    <p class="upload-subtitle">or click to browse files</p>
+                    <div class="upload-formats">
+                        <span class="format-badge">PDF</span>
+                        <span class="format-badge">DOCX</span>
+                        <span class="format-badge">PNG</span>
+                        <span class="format-badge">JPG</span>
+                        <span class="format-badge">TIFF</span>
+                        <span class="format-badge">BMP</span>
+                    </div>
+                    <p class="upload-limit">Maximum file size: 50MB</p>
+                    <input type="file" id="fileInput" accept=".pdf,.docx,.png,.jpg,.jpeg,.tiff,.bmp,.webp" hidden>
+                </div>
+
+                <div class="url-section">
+                    <div class="divider">
+                        <span>OR</span>
+                    </div>
+                    <div class="url-input-container">
+                        <div class="url-icon-subtle">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+                        </div>
+                        <input type="text" id="urlInput" placeholder="Paste a web URL here (e.g. https://wikipedia.org/...)">
+                        <button class="btn-url" id="btnExtractUrl">
+                            Summarize URL
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Processing Indicator -->
+            <section class="processing-section hidden" id="processingSection">
+                <div class="processing-card">
+                    <div class="processing-spinner">
+                        <div class="spinner-ring"></div>
+                        <div class="spinner-ring ring-inner"></div>
+                    </div>
+                    <h3 class="processing-title" id="processingTitle">Processing document...</h3>
+                    <p class="processing-subtitle" id="processingSubtitle">Extracting text and running AI analysis</p>
+                    <div class="processing-steps">
+                        <div class="step" id="stepExtract">
+                            <span class="step-icon">📄</span>
+                            <span>Text Extraction</span>
+                            <span class="step-status">⏳</span>
+                        </div>
+                        <div class="step" id="stepSummary">
+                            <span class="step-icon">📝</span>
+                            <span>Summarization</span>
+                            <span class="step-status">⏳</span>
+                        </div>
+                        <div class="step" id="stepEntities">
+                            <span class="step-icon">🏷️</span>
+                            <span>Entity Recognition</span>
+                            <span class="step-status">⏳</span>
+                        </div>
+                        <div class="step" id="stepSentiment">
+                            <span class="step-icon">💭</span>
+                            <span>Sentiment Analysis</span>
+                            <span class="step-status">⏳</span>
+                        </div>
+                    </div>
+                    <!-- Cancel Button -->
+                    <button class="btn-cancel" id="btnCancelProcessing" title="Cancel and return to upload">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M13.5 4.5l-9 9M4.5 4.5l9 9" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Cancel
+                    </button>
+                </div>
+            </section>
+
+            <!-- Results Section -->
+            <section class="results-section hidden" id="resultsSection">
+                <!-- File Info Bar -->
+                <div class="file-info-bar" id="fileInfoBar">
+                    <div class="file-info-left">
+                        <span class="file-type-icon" id="fileTypeIcon">📄</span>
+                        <div>
+                            <h3 class="file-name" id="fileName">document.pdf</h3>
+                            <p class="file-meta" id="fileMeta">PDF • 2.3 MB • 15 pages</p>
+                        </div>
+                    </div>
+                    <div class="file-info-right">
+                        <span class="processing-time" id="processingTime">⏱ 1.2s</span>
+                        <button class="btn-back" id="btnBackToUpload" title="Back to upload">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                                <path d="M15 10H5M10 15l-5-5 5-5" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                            Back
+                        </button>
+                        <button class="btn-new" id="btnNewUpload" title="Upload new document">
+                            <svg width="18" height="18" viewBox="0 0 20 20" fill="none">
+                                <path d="M10 4v12M4 10h12" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                            </svg>
+                            New Upload
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab active" data-tab="extracted" id="tabExtracted">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 3h12v12H3z" stroke="currentColor" stroke-width="1.5" rx="2"/><path d="M6 7h6M6 10h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        Extracted Text
+                    </button>
+                    <button class="tab" data-tab="summary" id="tabSummary">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M3 5h12M3 9h8M3 13h10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        Summary
+                    </button>
+                    <button class="tab" data-tab="entities" id="tabEntities">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="7" cy="7" r="4" stroke="currentColor" stroke-width="1.5"/><path d="M14 14l-3-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                        Entities
+                    </button>
+                    <button class="tab" data-tab="sentiment" id="tabSentiment">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M6 11c.5 1 1.5 2 3 2s2.5-1 3-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><circle cx="6.5" cy="7.5" r="1" fill="currentColor"/><circle cx="11.5" cy="7.5" r="1" fill="currentColor"/></svg>
+                        Sentiment
+                    </button>
+                    <button class="tab" data-tab="metadata" id="tabMetadata">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><circle cx="9" cy="9" r="7" stroke="currentColor" stroke-width="1.5"/><path d="M9 6v3l2 2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                        Metadata
+                    </button>
+                </div>
+
+                <!-- Tab Content -->
+                <div class="tab-content">
+                    <!-- Extracted Text -->
+                    <div class="tab-panel active" id="panelExtracted">
+                        <div class="panel-header">
+                            <h3>Extracted Text</h3>
+                            <div class="panel-actions">
+                                <button class="btn-copy" id="btnCopyText" title="Copy to clipboard">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 11V3a1 1 0 011-1h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                    Copy
+                                </button>
+                                <button class="btn-download" id="btnDownloadText" title="Download as .txt">
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M8 2v9M4 7l4 4 4-4M2 14h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                                    Download
+                                </button>
+                            </div>
+                        </div>
+                        <div class="text-content" id="extractedText">
+                            <p class="placeholder">No text extracted yet.</p>
+                        </div>
+                    </div>
+
+                    <!-- Summary -->
+                    <div class="tab-panel" id="panelSummary">
+                        <div class="panel-header">
+                            <h3>AI Summary</h3>
+                            <button class="btn-copy" id="btnCopySummary" title="Copy to clipboard">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><rect x="5" y="5" width="9" height="9" rx="1.5" stroke="currentColor" stroke-width="1.5"/><path d="M3 11V3a1 1 0 011-1h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+                                Copy
+                            </button>
+                        </div>
+                        <div class="summary-content" id="summaryContent">
+                            <p class="placeholder">No summary available.</p>
+                        </div>
+                        <div class="summary-stats hidden" id="summaryStats">
+                            <div class="stat-card">
+                                <span class="stat-value" id="statOriginalLen">0</span>
+                                <span class="stat-label">Original chars</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-value" id="statSummaryLen">0</span>
+                                <span class="stat-label">Summary chars</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-value" id="statCompression">0%</span>
+                                <span class="stat-label">Compression</span>
+                            </div>
+                            <div class="stat-card">
+                                <span class="stat-value" id="statAlgorithm">—</span>
+                                <span class="stat-label">Algorithm</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Entities -->
+                    <div class="tab-panel" id="panelEntities">
+                        <div class="panel-header">
+                            <h3>Named Entities</h3>
+                            <span class="entity-count" id="entityCount">0 entities found</span>
+                        </div>
+                        <div class="entity-categories" id="entityCategories">
+                            <p class="placeholder">No entities detected.</p>
+                        </div>
+                        <div class="entity-list" id="entityList"></div>
+                    </div>
+
+                    <!-- Sentiment -->
+                    <div class="tab-panel" id="panelSentiment">
+                        <div class="panel-header">
+                            <h3>Sentiment Analysis</h3>
+                        </div>
+                        <div class="sentiment-overview" id="sentimentOverview">
+                            <p class="placeholder">No sentiment data available.</p>
+                        </div>
+                    </div>
+
+                    <!-- Metadata -->
+                    <div class="tab-panel" id="panelMetadata">
+                        <div class="panel-header">
+                            <h3>Document Metadata</h3>
+                        </div>
+                        <div class="metadata-content" id="metadataContent">
+                            <p class="placeholder">No metadata available.</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>DocIntel v1.0 — Powered by FastAPI, spaCy, VADER & Tesseract OCR</p>
+        </footer>
+    </div>
+
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
