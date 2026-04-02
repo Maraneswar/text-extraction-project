@@ -51,7 +51,8 @@ python -m spacy download en_core_web_sm
     python main.py
     ```
 2.  Open your browser and navigate to:
-    `http://localhost:8000`
+    `http://localhost:7860
+    `
 
 ## 📘 Usage
 
