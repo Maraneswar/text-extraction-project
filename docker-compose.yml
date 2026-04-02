@@ -1,9 +1,9 @@
 version: '3.8'
 
 services:
-  docintel:
+  alldocex:
     build: .
-    container_name: docintel-app
+    container_name: alldocex-app
     ports:
       - "8000:8000"
     volumes:

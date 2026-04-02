@@ -1,5 +1,5 @@
 /**
- * DocIntel - Intelligent Document Processing
+ * Alldocex - Intelligent Document Processing
  * Frontend application logic
  */
 

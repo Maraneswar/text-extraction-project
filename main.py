@@ -27,7 +27,7 @@ from analyzers.sentiment import analyze_sentiment
 
 # --- App Setup ---
 app = FastAPI(
-    title="DocIntel - Intelligent Document Processing",
+    title="Alldocex - Intelligent Document Processing",
     description="Extract, analyse, and summarize content from PDF, DOCX, and image files using AI.",
     version="1.0.0",
 )
@@ -293,7 +293,7 @@ async def serve_index():
     index_path = os.path.join(STATIC_DIR, "index.html")
     if os.path.exists(index_path):
         return FileResponse(index_path)
-    return JSONResponse({"message": "DocIntel API is running. Frontend not found."})
+    return JSONResponse({"message": "Alldocex API is running. Frontend not found."})
 
 
 # Mount static files
@@ -302,6 +302,6 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
 if __name__ == "__main__":
     import uvicorn
-    print("\n🚀 DocIntel - Intelligent Document Processing System")
+    print("\n🚀 Alldocex - Intelligent Document Processing System")
     print("📄 Open http://localhost:8000 in your browser\n")
     uvicorn.run(app, host="0.0.0.0", port=8000)

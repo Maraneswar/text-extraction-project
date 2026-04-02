@@ -1,6 +1,6 @@
-# DocIntel - Deployment Guide
+# Alldocex - Deployment Guide
 
-This guide provides three main options for deploying the DocIntel application to a production environment.
+This guide provides three main options for deploying the Alldocex application to a production environment.
 
 ## 🏗️ Option 1: Docker (Recommended)
 
@@ -8,7 +8,7 @@ Docker is the best choice because it packages all the AI models, dependencies, a
 
 ### 1. Build the image
 ```bash
-docker build -t docintel-app .
+docker build -t alldocex-app .
 ```
 
 ### 2. Run with Docker Compose

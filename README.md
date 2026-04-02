@@ -1,9 +1,9 @@
-# DocIntel — Intelligent Document Processing System
+# Alldocex — Intelligent Document Processing System
 
 ![Version](https://img.shields.io/badge/version-1.1.0-blue)
 ![License](https://img.shields.io/badge/license-MIT-green)
 
-**DocIntel** is a high-performance, professional-grade document intelligence platform that extracts, analyzes, and summarizes content from various document formats using state-of-the-art AI.
+**Alldocex** is a high-performance, professional-grade document intelligence platform that extracts, analyzes, and summarizes content from various document formats using state-of-the-art AI.
 
 ## 🚀 Key Features
 

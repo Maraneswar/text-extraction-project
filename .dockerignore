@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.git/
+.gitignore
+docintel.db
+uploads/*
+test_results.txt
+test_output.txt
+.gemini/
+scripts/
+brain/
+*.ipynb
+node_modules/
+dist/
+build/
