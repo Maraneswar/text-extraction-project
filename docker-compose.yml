@@ -5,7 +5,7 @@ services:
     build: .
     container_name: alldocex-app
     ports:
-      - "8000:8000"
+      - "7860:7860"
     volumes:
       - ./uploads:/app/uploads
     environment:

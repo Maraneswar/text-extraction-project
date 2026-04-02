@@ -303,5 +303,5 @@ app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 if __name__ == "__main__":
     import uvicorn
     print("\n🚀 Alldocex - Intelligent Document Processing System")
-    print("📄 Open http://localhost:8000 in your browser\n")
-    uvicorn.run(app, host="0.0.0.0", port=8000)
+    print("📄 Open http://localhost:7860 in your browser\n")
+    uvicorn.run(app, host="0.0.0.0", port=7860)

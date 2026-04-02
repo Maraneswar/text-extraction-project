@@ -33,8 +33,8 @@ RUN mkdir -p /app/uploads
 # Copy the rest of the application code
 COPY . .
 
-# Expose the API port
-EXPOSE 8000
+# Expose the API port for Hugging Face Spaces
+EXPOSE 7860
 
 # Start the application using Uvicorn
-CMD ["uvicorn", "main.py:app", "--host", "0.0.0.0", "--port", "8000"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "7860"]
