@@ -1,8 +1,9 @@
-"""
-Configuration settings for the Document Processing System.
-"""
 import os
 import shutil
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # --- Paths ---
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -75,3 +76,11 @@ SENTIMENT_THRESHOLDS = {
     "positive": 0.05,
     "negative": -0.05,
 }
+
+# --- Gemini AI Configuration ---
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+
+# Flag to check if Gemini is configured
+def is_gemini_available():
+    return bool(GEMINI_API_KEY)

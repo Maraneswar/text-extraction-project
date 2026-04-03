@@ -199,6 +199,10 @@
                         <div class="summary-content" id="summaryContent">
                             <p class="placeholder">No summary available.</p>
                         </div>
+                        <div class="key-highlights hidden" id="keyHighlightsContainer">
+                            <h4>Key Highlights</h4>
+                            <ul class="highlights-list" id="highlightsList"></ul>
+                        </div>
                         <div class="summary-stats hidden" id="summaryStats">
                             <div class="stat-card">
                                 <span class="stat-value" id="statOriginalLen">0</span>
@@ -263,6 +267,7 @@
     <!-- Toast Container -->
     <div class="toast-container" id="toastContainer"></div>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/static/app.js"></script>
 </body>
 </html>

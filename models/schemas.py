@@ -52,6 +52,7 @@ class ExtractionResult(BaseModel):
 
 class SummaryResult(BaseModel):
     summary: str
+    key_points: List[str] = []
     original_length: int
     summary_length: int
     compression_ratio: float

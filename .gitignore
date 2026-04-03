@@ -12,6 +12,7 @@ pip-log.txt
 pip-delete-this-directory.txt
 
 # Local configuration and databases
+.env
 docintel.db
 docintel.db-journal
 uploads/*

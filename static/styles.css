@@ -639,18 +639,58 @@ body {
 
 /* --- Text Content --- */
 .text-content, .summary-content {
-    padding: 24px;
+    padding: 32px;
     background: #ffffff;
     border: 1px solid var(--border-light);
     border-radius: var(--radius-lg);
-    color: var(--text-primary);
+    color: #334155; /* Slightly softer text color for reduced eye strain */
     box-shadow: var(--shadow-sm);
-    max-height: 500px;
+    max-height: 600px;
     overflow-y: auto;
-    font-size: 0.9rem;
-    line-height: 1.8;
-    white-space: pre-wrap;
+    font-size: 1rem;
+    line-height: 1.7; /* Optimal readable line height */
     word-wrap: break-word;
+    text-align: left; /* Left alignment completely cures weird spacing gaps */
+    letter-spacing: 0.015em;
+    word-spacing: 0.05em; /* Smooth spacing between words */
+}
+
+/* Enhancing Markdown Elements */
+.text-content p, .summary-content p {
+    margin-bottom: 1.25em;
+}
+
+.text-content p:last-child, .summary-content p:last-child {
+    margin-bottom: 0;
+}
+
+.text-content h1, .summary-content h1,
+.text-content h2, .summary-content h2,
+.text-content h3, .summary-content h3 {
+    margin-top: 1.5em;
+    margin-bottom: 0.75em;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.text-content h1, .summary-content h1 { font-size: 1.5rem; }
+.text-content h2, .summary-content h2 { font-size: 1.35rem; }
+.text-content h3, .summary-content h3 { font-size: 1.15rem; }
+
+.text-content ul, .summary-content ul,
+.text-content ol, .summary-content ol {
+    margin-top: 0;
+    margin-bottom: 1.25em;
+    padding-left: 1.5em;
+}
+
+.text-content li, .summary-content li {
+    margin-bottom: 0.5em;
+}
+
+.text-content strong, .summary-content strong {
+    font-weight: 600;
+    color: var(--text-primary);
 }
 
 .summary-content {
@@ -1153,4 +1193,60 @@ body {
         font-size: 0.65rem;
         padding: 3px 8px;
     }
+}
+
+/* --- Key Highlights Styling --- */
+.key-highlights {
+    margin-top: 24px;
+    padding-top: 20px;
+}
+
+.key-highlights h4 {
+    font-size: 1rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: var(--accent-blue-deep);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.key-highlights h4::before {
+    content: '✨';
+}
+
+.highlights-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.highlights-list li {
+    position: relative;
+    padding: 12px 16px 12px 42px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+    transition: var(--transition-fast);
+}
+
+.highlights-list li:hover {
+    transform: translateX(4px);
+    border-color: var(--accent-blue-light);
+    background: var(--bg-secondary);
+    box-shadow: var(--shadow-sm);
+}
+
+.highlights-list li::before {
+    content: '→';
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--accent-blue);
+    font-weight: 800;
 }

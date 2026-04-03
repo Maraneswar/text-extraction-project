@@ -24,6 +24,7 @@ from extractors.url_extractor import extract_url
 from analyzers.summarizer import summarize_text
 from analyzers.ner_extractor import extract_entities
 from analyzers.sentiment import analyze_sentiment
+from analyzers.text_cleaner import clean_format_text
 
 # --- App Setup ---
 app = FastAPI(
@@ -96,7 +97,18 @@ def _process_document(file_path: str, file_type: str, task_id: str):
             task.error_message = extraction.error_message or "No text could be extracted."
             task.processing_time_ms = (time.time() - start_time) * 1000
             return
+        raw_text = extraction.raw_text
 
+        # Intelligent Formatting Pass via Gemini
+        formatted_text = clean_format_text(raw_text)
+        
+        if formatted_text == raw_text:
+            # Fallback cleanup for broken line breaks if Gemini was unavailable
+            import re
+            formatted_text = re.sub(r'(?<!\n)\n(?!\n)', ' ', formatted_text)
+            formatted_text = re.sub(r'[ \t]+', ' ', formatted_text)
+            
+        extraction.raw_text = formatted_text.strip()
         raw_text = extraction.raw_text
 
         # Step 2: Summarization

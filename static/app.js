@@ -261,26 +261,56 @@ function displayResults(data) {
     const timeSeconds = (data.processing_time_ms / 1000).toFixed(1);
     $('#processingTime').textContent = `⏱ ${timeSeconds}s`;
 
+    // Fallback parser in case CDN fails or is blocked
+    const parseMarkdown = (text) => {
+        if (!text) return '';
+        if (window.marked && window.marked.parse) {
+            return window.marked.parse(text);
+        } else if (window.marked) {
+            return window.marked(text);
+        }
+        // Very basic fallback if marked fails to load
+        return escapeHtml(text).replace(/\n/g, '<br>').replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+    };
+
     // Extracted Text
     const textEl = $('#extractedText');
     if (data.extraction?.raw_text) {
-        textEl.textContent = data.extraction.raw_text;
+        textEl.innerHTML = parseMarkdown(data.extraction.raw_text);
     } else {
         textEl.innerHTML = `<p class="placeholder">${data.extraction?.error_message || 'No text extracted.'}</p>`;
     }
 
     // Summary
     if (data.summary) {
-        $('#summaryContent').textContent = data.summary.summary;
+        $('#summaryContent').innerHTML = parseMarkdown(data.summary.summary || 'Summary generation failed.');
+        
         $('#summaryStats').classList.remove('hidden');
         $('#statOriginalLen').textContent = data.summary.original_length.toLocaleString();
         $('#statSummaryLen').textContent = data.summary.summary_length.toLocaleString();
         const pct = Math.round((1 - data.summary.compression_ratio) * 100);
         $('#statCompression').textContent = `${pct}%`;
         $('#statAlgorithm').textContent = data.summary.algorithm;
+
+        // Render Key Highlights
+        const highlightsContainer = $('#keyHighlightsContainer');
+        const highlightsList = $('#highlightsList');
+        if (data.summary.key_points && data.summary.key_points.length > 0) {
+            highlightsContainer.classList.remove('hidden');
+            highlightsList.innerHTML = data.summary.key_points
+                .map(point => {
+                    let escaped = escapeHtml(point);
+                    let bolded = escaped.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                    return `<li>${bolded}</li>`;
+                })
+                .join('');
+        } else {
+            highlightsContainer.classList.add('hidden');
+        }
     } else {
         $('#summaryContent').innerHTML = '<p class="placeholder">Summarization not available.</p>';
         $('#summaryStats').classList.add('hidden');
+        $('#keyHighlightsContainer').classList.add('hidden');
     }
 
     // Entities
@@ -560,6 +590,8 @@ function resetAll() {
     $('#extractedText').innerHTML = '<p class="placeholder">No text extracted yet.</p>';
     $('#summaryContent').innerHTML = '<p class="placeholder">No summary available.</p>';
     $('#summaryStats').classList.add('hidden');
+    $('#keyHighlightsContainer').classList.add('hidden');
+    $('#highlightsList').innerHTML = '';
     $('#entityCategories').innerHTML = '<p class="placeholder">No entities detected.</p>';
     $('#entityList').innerHTML = '';
     $('#sentimentOverview').innerHTML = '<p class="placeholder">No sentiment data available.</p>';
