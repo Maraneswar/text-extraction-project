@@ -85,7 +85,8 @@ GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 API_ACCESS_KEY = (
     os.getenv("API_ACCESS_KEY") or
     os.getenv("VALID_API_KEY") or
-    os.getenv("API_KEY")
+    os.getenv("API_KEY") or
+    "alldocex-test-key-2024"  # Default key for the Endpoint Tester
 )
 
 def is_api_key_valid(key: str) -> bool:
