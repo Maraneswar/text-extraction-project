@@ -68,4 +68,8 @@ python -m spacy download en_core_web_sm
 3.  **URL Entry**: Paste a web link to summarize online articles instantly.
 4.  **Download**: Once processing is complete, use the **Download** button to save the extracted text.
 
----
+---📘AI Tolls used
+
+1. GEMINI-3 Flash model.
+
+
