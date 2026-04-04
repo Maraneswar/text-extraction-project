@@ -68,8 +68,14 @@ python -m spacy download en_core_web_sm
 3.  **URL Entry**: Paste a web link to summarize online articles instantly.
 4.  **Download**: Once processing is complete, use the **Download** button to save the extracted text.
 
----📘AI Tolls used
+## 🤖 AI Tools Used
 
-1. GEMINI-3 Flash model.
+- **Gemini 1.5 Flash**: Primary AI model for high-precision OCR and structured data extraction.
+- **spaCy (en_core_web_sm)**: Used for Named Entity Recognition (NER).
+- **VADER**: Sentiment analysis tool integrated with spaCy.
+- **Sumy**: Library for extractive summarization of documents.
+- **EasyOCR**: Fallback OCR engine for image processing.
+- **Tesseract**: Additional OCR engine for text recovery.
+- **PyMuPDF**: PDF parsing and layout analysis.
 
 
