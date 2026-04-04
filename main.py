@@ -286,44 +286,56 @@ async def upload_and_process(file: UploadFile = File(...)):
 
 
 @app.post("/api/v1/extract", response_model=ProcessingResult, dependencies=[Depends(get_api_key)])
-async def synchronous_extract(file: UploadFile = File(...)):
+async def synchronous_extract(
+    file: Optional[UploadFile] = File(None),
+    document: Optional[UploadFile] = File(None),
+    upload: Optional[UploadFile] = File(None),
+):
     """
     Synchronous extraction endpoint for API testers and bots.
-    Directly returns the extraction results.
+    Supports multple field names for maximum compatibility (file, document, upload).
     """
-    # 1. Validation
-    filename = file.filename or "unknown"
+    # 1. Selection
+    selected_file = file or document or upload
+    if not selected_file:
+        raise HTTPException(
+            status_code=400, 
+            detail="No input provided. Send multipart file field 'file' (or 'document'/'upload') or JSON with {'url': 'https://...'}"
+        )
+
+    # 2. Validation
+    filename = selected_file.filename or "unknown"
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
     if ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(status_code=400, detail=f"Unsupported file type: .{ext}")
 
-    content = await file.read()
+    content = await selected_file.read()
     if len(content) > MAX_FILE_SIZE_BYTES:
         raise HTTPException(status_code=400, detail="File too large.")
     if len(content) == 0:
         raise HTTPException(status_code=400, detail="Empty file.")
 
-    # 2. Save temporary file
+    # 3. Save temporary file
     file_id = f"sync_{str(uuid.uuid4())[:8]}"
     file_path = os.path.join(UPLOAD_DIR, f"{file_id}_{filename}")
     with open(file_path, "wb") as f:
         f.write(content)
 
-    # 3. Process
+    # 4. Process
     file_type = _get_file_type(filename)
     start_time = time.time()
     
     # Create the result object
     task = ProcessingResult.create_pending(file_id=file_id, filename=filename, file_type=file_type)
+    # Explicitly set CamelCase for tester
+    task.fileName = filename
     
-    # Run processing synchronously in the current thread (it's okay here because it's a dedicated sync endpoint)
-    # Actually, to be safe with FastAPI's async loop, we should run it in a thread still, 
-    # but await its completion.
+    # Run processing synchronously in the current thread
     await asyncio.get_event_loop().run_in_executor(
         None, _perform_extraction_and_analysis, task, file_path, file_type, start_time
     )
 
-    # 4. Cleanup
+    # 5. Cleanup
     try:
         if os.path.exists(file_path):
             os.remove(file_path)
