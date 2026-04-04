@@ -81,6 +81,16 @@ SENTIMENT_THRESHOLDS = {
 GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 GEMINI_MODEL_NAME = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 
+# API access key for external clients
+API_ACCESS_KEY = (
+    os.getenv("API_ACCESS_KEY") or
+    os.getenv("VALID_API_KEY") or
+    os.getenv("API_KEY")
+)
+
+def is_api_key_valid(key: str) -> bool:
+    return bool(API_ACCESS_KEY and key and key.strip() == API_ACCESS_KEY)
+
 # Flag to check if Gemini is configured
 def is_gemini_available():
     return bool(GEMINI_API_KEY)

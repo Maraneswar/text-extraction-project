@@ -96,6 +96,7 @@ class SentimentResult(BaseModel):
 class ProcessingResult(BaseModel):
     file_id: str
     filename: str
+    fileName: Optional[str] = None  # CamelCase for external testers
     file_type: str
     status: TaskStatus
     extraction: Optional[ExtractionResult] = None
@@ -106,11 +107,15 @@ class ProcessingResult(BaseModel):
     error_message: Optional[str] = None
     timestamp: float = 0
 
+    class Config:
+        allow_population_by_field_name = True
+
     @staticmethod
     def create_pending(file_id: str, filename: str, file_type: str) -> "ProcessingResult":
         return ProcessingResult(
             file_id=file_id,
             filename=filename,
+            fileName=filename,
             file_type=file_type,
             status=TaskStatus.PENDING,
             timestamp=time.time(),

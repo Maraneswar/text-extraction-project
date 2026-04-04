@@ -6,12 +6,65 @@ import os
 import uuid
 import time
 import asyncio
-from typing import Dict
-from fastapi import FastAPI, UploadFile, File, HTTPException
+from typing import Dict, Optional
+from fastapi import FastAPI, UploadFile, File, HTTPException, Depends, Header
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+import ssl
 
+# --- CRITICAL: Setup NLP models BEFORE importing analyzers/extractors ---
+def _setup_nlp_models():
+    """Download NLTK and spaCy models on startup."""
+    print("=" * 60)
+    print("Initializing NLP models (this may take a few minutes)...")
+    print("=" * 60)
+    
+    # Fix SSL for NLTK downloads
+    try:
+        if hasattr(ssl, '_create_unverified_context'):
+            ssl._create_default_https_context = ssl._create_unverified_context
+    except:
+        pass
+    
+    # Download NLTK data
+    try:
+        import nltk
+        print("[1/3] NLTK resources...", end=" ", flush=True)
+        nltk.download('wordnet', quiet=True)
+        nltk.download('punkt', quiet=True)
+        nltk.download('omw-1.4', quiet=True)
+        nltk.download('averaged_perceptron_tagger', quiet=True)
+        print("✓")
+    except Exception as e:
+        print(f"⚠ ({e})")
+    
+    # Download spaCy model
+    try:
+        import spacy
+        print("[2/3] spaCy en_core_web_sm...", end=" ", flush=True)
+        try:
+            spacy.load('en_core_web_sm')
+            print("✓")
+        except OSError:
+            print("downloading...", end=" ", flush=True)
+            import subprocess
+            subprocess.run([sys.executable, "-m", "spacy", "download", "en_core_web_sm"], capture_output=True)
+            print("✓")
+    except Exception as e:
+        print(f"⚠ ({e})")
+    
+    print("[3/3] App initialization...", end=" ", flush=True)
+    print("✓")
+    print("=" * 60)
+    print("NLP setup complete! App is ready.")
+    print("=" * 60 + "\n")
+
+# Setup models IMMEDIATELY
+import sys
+_setup_nlp_models()
+
+import config
 from config import UPLOAD_DIR, STATIC_DIR, MAX_FILE_SIZE_BYTES, ALLOWED_EXTENSIONS
 from models.schemas import (
     UploadResponse, ProcessingResult, TaskStatus,
@@ -67,15 +120,29 @@ def _get_file_type(filename: str) -> str:
     return "unknown"
 
 
-def _process_document(file_path: str, file_type: str, task_id: str):
-    """
-    Process a document: extract text, then run all analyzers.
-    This runs in a thread pool to avoid blocking the event loop.
-    """
-    start_time = time.time()
-    task = tasks[task_id]
-    task.status = TaskStatus.PROCESSING
+async def get_api_key(
+    x_api_key: Optional[str] = Header(None, alias="x-api-key"),
+    authorization: Optional[str] = Header(None, alias="Authorization"),
+) -> str:
+    """Validate incoming API key from header or bearer auth."""
+    token = x_api_key
+    if authorization:
+        bearer_prefix = "Bearer "
+        if authorization.startswith(bearer_prefix):
+            token = authorization[len(bearer_prefix) :].strip()
+        else:
+            token = authorization.strip()
 
+    if not token or not config.is_api_key_valid(token):
+        raise HTTPException(status_code=401, detail="Unauthorized. Invalid API key.")
+
+    return token
+
+
+def _perform_extraction_and_analysis(task: ProcessingResult, file_path: str, file_type: str, start_time: float):
+    """
+    Common logic for document processing: extraction, summarization, NER, and sentiment.
+    """
     try:
         # Step 1: Extract text based on file type
         if file_type == "pdf":
@@ -97,19 +164,21 @@ def _process_document(file_path: str, file_type: str, task_id: str):
             task.error_message = extraction.error_message or "No text could be extracted."
             task.processing_time_ms = (time.time() - start_time) * 1000
             return
+        
         raw_text = extraction.raw_text
 
         # Intelligent Formatting Pass via Gemini
-        formatted_text = clean_format_text(raw_text)
-        
-        if formatted_text == raw_text:
-            # Fallback cleanup for broken line breaks if Gemini was unavailable
-            import re
-            formatted_text = re.sub(r'(?<!\n)\n(?!\n)', ' ', formatted_text)
-            formatted_text = re.sub(r'[ \t]+', ' ', formatted_text)
-            
-        extraction.raw_text = formatted_text.strip()
-        raw_text = extraction.raw_text
+        try:
+            formatted_text = clean_format_text(raw_text)
+            if formatted_text == raw_text:
+                # Fallback cleanup for broken line breaks if Gemini was unavailable
+                import re
+                formatted_text = re.sub(r'(?<!\n)\n(?!\n)', ' ', formatted_text)
+                formatted_text = re.sub(r'[ \t]+', ' ', formatted_text)
+            extraction.raw_text = formatted_text.strip()
+            raw_text = extraction.raw_text
+        except Exception as e:
+            print(f"Text cleanup error: {e}")
 
         # Step 2: Summarization
         try:
@@ -137,10 +206,22 @@ def _process_document(file_path: str, file_type: str, task_id: str):
         task.error_message = str(e)
         task.processing_time_ms = (time.time() - start_time) * 1000
 
+
+def _process_document(file_path: str, file_type: str, task_id: str):
+    """
+    Process a document: extract text, then run all analyzers.
+    This runs in a thread pool to avoid blocking the event loop.
+    """
+    start_time = time.time()
+    task = tasks[task_id]
+    task.status = TaskStatus.PROCESSING
+
+    try:
+        _perform_extraction_and_analysis(task, file_path, file_type, start_time)
     finally:
         # Clean up uploaded file
         try:
-            if os.path.exists(file_path):
+            if os.path.exists(file_path) and file_type != "url":
                 os.remove(file_path)
         except Exception:
             pass
@@ -148,7 +229,7 @@ def _process_document(file_path: str, file_type: str, task_id: str):
 
 # --- API Endpoints ---
 
-@app.post("/api/upload", response_model=ProcessingResult)
+@app.post("/api/upload", response_model=ProcessingResult, dependencies=[Depends(get_api_key)])
 async def upload_and_process(file: UploadFile = File(...)):
     """
     Upload a document and start processing.
@@ -204,7 +285,58 @@ async def upload_and_process(file: UploadFile = File(...)):
     return task
 
 
-@app.post("/api/extract/url", response_model=ProcessingResult)
+@app.post("/api/v1/extract", response_model=ProcessingResult, dependencies=[Depends(get_api_key)])
+async def synchronous_extract(file: UploadFile = File(...)):
+    """
+    Synchronous extraction endpoint for API testers and bots.
+    Directly returns the extraction results.
+    """
+    # 1. Validation
+    filename = file.filename or "unknown"
+    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else ""
+    if ext not in ALLOWED_EXTENSIONS:
+        raise HTTPException(status_code=400, detail=f"Unsupported file type: .{ext}")
+
+    content = await file.read()
+    if len(content) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(status_code=400, detail="File too large.")
+    if len(content) == 0:
+        raise HTTPException(status_code=400, detail="Empty file.")
+
+    # 2. Save temporary file
+    file_id = f"sync_{str(uuid.uuid4())[:8]}"
+    file_path = os.path.join(UPLOAD_DIR, f"{file_id}_{filename}")
+    with open(file_path, "wb") as f:
+        f.write(content)
+
+    # 3. Process
+    file_type = _get_file_type(filename)
+    start_time = time.time()
+    
+    # Create the result object
+    task = ProcessingResult.create_pending(file_id=file_id, filename=filename, file_type=file_type)
+    
+    # Run processing synchronously in the current thread (it's okay here because it's a dedicated sync endpoint)
+    # Actually, to be safe with FastAPI's async loop, we should run it in a thread still, 
+    # but await its completion.
+    await asyncio.get_event_loop().run_in_executor(
+        None, _perform_extraction_and_analysis, task, file_path, file_type, start_time
+    )
+
+    # 4. Cleanup
+    try:
+        if os.path.exists(file_path):
+            os.remove(file_path)
+    except Exception:
+        pass
+
+    if task.status == TaskStatus.ERROR:
+        raise HTTPException(status_code=500, detail=task.error_message or "Processing failed.")
+
+    return task
+
+
+@app.post("/api/extract/url", response_model=ProcessingResult, dependencies=[Depends(get_api_key)])
 async def extract_from_url(data: Dict[str, str]):
     """
     Extract content from a web URL and process it.
@@ -236,7 +368,7 @@ async def extract_from_url(data: Dict[str, str]):
     return task
 
 
-@app.get("/api/status/{task_id}")
+@app.get("/api/status/{task_id}", dependencies=[Depends(get_api_key)])
 async def get_task_status(task_id: str):
     """Get the processing status and results for a task."""
     if task_id not in tasks:
@@ -244,7 +376,7 @@ async def get_task_status(task_id: str):
     return tasks[task_id]
 
 
-@app.get("/api/download/{task_id}")
+@app.get("/api/download/{task_id}", dependencies=[Depends(get_api_key)])
 async def download_results(task_id: str):
     """Download the extracted text as a .txt file."""
     if task_id not in tasks:

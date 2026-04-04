@@ -37,10 +37,15 @@ cd <repo-folder>
 ```
 
 ### 2. Environment Variables
-Create a `.env` file in the root directory and add your Google Gemini API key:
+Create a `.env` file in the root directory and add your Google Gemini API key plus the deployment API access key:
 ```env
 GEMINI_API_KEY=your_gemini_api_key_here
+API_ACCESS_KEY=your_deployment_api_key_here
 ```
+
+The deployed API expects a valid key in one of these headers:
+- `x-api-key: your_deployment_api_key_here`
+- `Authorization: Bearer your_deployment_api_key_here`
 
 ### 3. Install dependencies
 ```bash
@@ -61,7 +66,56 @@ python -m spacy download en_core_web_sm
     ```
 2.  Open your browser and navigate to the indicated localhost address (e.g., `http://localhost:7860`).
 
-## 📘 Usage
+## � API Endpoints
+
+The deployment exposes these authenticated API endpoints:
+
+- `POST /api/upload`
+  - Upload a document file and start processing.
+  - Content type: `multipart/form-data`
+  - Header: `x-api-key` or `Authorization: Bearer <key>`
+
+- `POST /api/extract/url`
+  - Send a JSON payload with a URL to extract content.
+  - Example body: `{ "url": "https://example.com/article" }`
+
+- `GET /api/status/{task_id}`
+  - Poll task status and receive extracted text, summary, entities, and sentiment.
+
+- `GET /api/download/{task_id}`
+  - Download extracted text as a `.txt` file.
+
+- `GET /api/health`
+  - Check service health and dependency availability.
+
+### Example curl calls
+
+Upload a file:
+```bash
+curl -X POST "http://localhost:7860/api/upload" \
+  -H "x-api-key: your_deployment_api_key_here" \
+  -F "file=@/path/to/document.pdf"
+```
+
+Extract from a URL:
+```bash
+curl -X POST "http://localhost:7860/api/extract/url" \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer your_deployment_api_key_here" \
+  -d '{"url": "https://example.com/article"}'
+```
+
+Check status:
+```bash
+curl -H "x-api-key: your_deployment_api_key_here" "http://localhost:7860/api/status/<task_id>"
+```
+
+Download text:
+```bash
+curl -H "x-api-key: your_deployment_api_key_here" "http://localhost:7860/api/download/<task_id>" -o output.txt
+```
+
+## �📘 Usage
 
 1.  **Direct Upload**: Drag and drop your PDFs or images into the dashboard.
 2.  **Format Selection**: Click on specific badges (PDF, PNG, JPG) to open a filtered file picker.
